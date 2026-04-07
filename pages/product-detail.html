@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Details — Rimjhim</title>
+  <meta name="description" content="Shop premium Indian ethnic wear at Rimjhim." />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* ── Product Detail Styles ─────────────────────────────── */
+    .product-detail-page {
+      padding-top: calc(var(--nav-height) + var(--space-2xl));
+      padding-bottom: var(--space-3xl);
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+
+    /* Gallery */
+    .product-gallery { position: sticky; top: calc(var(--nav-height) + 20px); }
+
+    .gallery-main {
+      aspect-ratio: 3/4;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: var(--space-md);
+      border: 1px solid var(--clr-border);
+      position: relative;
+    }
+
+    .gallery-main img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .gallery-main:hover img { transform: scale(1.04); }
+
+    .gallery-badge {
+      position: absolute;
+      top: 16px; left: 16px;
+      background: var(--grad-gold);
+      color: #1a0e00;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+    }
+
+    .gallery-thumbs {
+      display: flex;
+      gap: 10px;
+    }
+
+    .gallery-thumb {
+      width: 72px; height: 90px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 2px solid var(--clr-border);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      flex-shrink: 0;
+    }
+    .gallery-thumb:hover, .gallery-thumb.active { border-color: var(--clr-gold); }
+    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Product Info */
+    .product-info-side { padding: var(--space-md) 0; }
+
+    .product-category-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(212,168,83,0.1);
+      border: 1px solid rgba(212,168,83,0.2);
+      color: var(--clr-gold);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-md);
+    }
+
+    .product-detail-name {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      color: var(--clr-ivory);
+      margin-bottom: var(--space-md);
+      line-height: 1.2;
+    }
+
+    .product-meta-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .detail-rating { display: flex; align-items: center; gap: 8px; }
+    .detail-stars { color: var(--clr-gold); font-size: 1.1rem; }
+    .review-count { font-size: 0.82rem; color: var(--clr-text-muted); }
+    .meta-separator { color: var(--clr-border); }
+    .in-stock { color: var(--clr-success); font-size: 0.82rem; font-weight: 600; }
+
+    .price-section {
+      background: var(--grad-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+
+    .detail-price-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .detail-price-current {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--clr-gold);
+      font-family: var(--font-heading);
+    }
+    .detail-price-original {
+      font-size: 1.1rem;
+      color: var(--clr-text-muted);
+      text-decoration: line-through;
+    }
+    .detail-price-badge {
+      background: rgba(76,175,125,0.15);
+      color: var(--clr-success);
+      border: 1px solid rgba(76,175,125,0.3);
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .price-note {
+      font-size: 0.75rem;
+      color: var(--clr-text-muted);
+      margin-top: 8px;
+    }
+
+    /* Size & Color Selectors */
+    .selector-section { margin-bottom: var(--space-lg); }
+    .selector-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--clr-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+    .selector-label a { color: var(--clr-gold); font-size: 0.75rem; }
+
+    .size-options { display: flex; gap: 8px; flex-wrap: wrap; }
+    .size-btn {
+      min-width: 44px;
+      height: 44px;
+      border: 1.5px solid var(--clr-border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--clr-text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      padding: 0 12px;
+    }
+    .size-btn:hover { border-color: var(--clr-gold); color: var(--clr-gold); }
+    .size-btn.selected {
+      border-color: var(--clr-gold);
+      background: rgba(212,168,83,0.15);
+      color: var(--clr-gold);
+    }
+
+    .color-options { display: flex; gap: 10px; flex-wrap: wrap; }
+    .color-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .color-swatch {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+    .color-btn.selected .color-swatch { border-color: var(--clr-gold); }
+    .color-btn.selected .color-swatch::after {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .color-name { font-size: 0.65rem; color: var(--clr-text-muted); }
+
+    /* Quantity */
+    .quantity-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+    .quantity-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--clr-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--clr-border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .qty-btn {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.04);
+      border: none;
+      color: var(--clr-text);
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qty-btn:hover { background: rgba(212,168,83,0.15); color: var(--clr-gold); }
+    .qty-display {
+      width: 48px; height: 40px;
+      background: transparent;
+      border: none;
+      color: var(--clr-ivory);
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* CTA Buttons */
+    .cta-buttons {
+      display: flex;
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+    .cta-buttons .btn { flex: 1; justify-content: center; }
+    .btn-wishlist {
+      flex: 0 0 50px !important;
+      width: 50px;
+      border-radius: var(--radius-sm) !important;
+    }
+
+    /* Product Tabs */
+    .product-tabs { margin-top: var(--space-xl); }
+    .tab-list {
+      display: flex;
+      border-bottom: 1px solid var(--clr-border);
+      gap: var(--space-xl);
+      margin-bottom: var(--space-lg);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--clr-text-muted);
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 10px 0;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all var(--transition-fast);
+    }
+    .tab-btn.active {
+      color: var(--clr-gold);
+      border-bottom-color: var(--clr-gold);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .description-text {
+      color: var(--clr-text);
+      line-height: 1.9;
+      font-size: 0.92rem;
+    }
+
+    .specs-table { width: 100%; border-collapse: collapse; }
+    .specs-table tr { border-bottom: 1px solid var(--clr-border); }
+    .specs-table td {
+      padding: 10px 0;
+      font-size: 0.87rem;
+    }
+    .specs-table td:first-child {
+      width: 40%;
+      color: var(--clr-text-muted);
+      font-weight: 500;
+    }
+    .specs-table td:last-child { color: var(--clr-text); }
+
+    /* Related Products */
+    .related-section { margin-top: var(--space-3xl); }
+
+    @media (max-width: 768px) {
+      .detail-grid { grid-template-columns: 1fr; }
+      .product-gallery { position: static; }
+      .cta-buttons { flex-direction: column; }
+      .btn-wishlist { flex: 0 0 auto !important; width: auto !important; align-self: flex-start; padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="page-loader" class="loader-overlay"><div class="loader-ring"></div></div>
+<header id="navbar" class="navbar"></header>
+
+<main class="product-detail-page">
+  <div class="container">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" style="margin-bottom:var(--space-xl);">
+      <a href="/index.html">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="/pages/products.html">Shop</a>
+      <span class="breadcrumb-sep">›</span>
+      <span id="detail-breadcrumb">Product</span>
+    </nav>
+
+    <!-- Skeleton while loading -->
+    <div id="product-skeleton">
+      <div class="detail-grid">
+        <div class="skeleton" style="aspect-ratio:3/4;border-radius:var(--radius-lg);"></div>
+        <div>
+          <div class="skeleton" style="height:24px;width:40%;margin-bottom:16px;"></div>
+          <div class="skeleton" style="height:40px;width:80%;margin-bottom:12px;"></div>
+          <div class="skeleton" style="height:20px;width:50%;margin-bottom:24px;"></div>
+          <div class="skeleton" style="height:100px;margin-bottom:16px;"></div>
+          <div class="skeleton" style="height:56px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Content -->
+    <div id="product-content" style="display:none;">
+      <div class="detail-grid">
+        <!-- Gallery -->
+        <div class="product-gallery">
+          <div class="gallery-main">
+            <img id="main-image" src="" alt="" />
+            <div class="gallery-badge" id="discount-badge" style="display:none;"></div>
+          </div>
+          <div class="gallery-thumbs" id="gallery-thumbs"></div>
+        </div>
+
+        <!-- Info -->
+        <div class="product-info-side">
+          <div class="product-category-tag" id="product-category">—</div>
+          <h1 class="product-detail-name" id="product-name">Loading...</h1>
+          <div class="product-meta-row">
+            <div class="detail-rating">
+              <span class="detail-stars" id="product-stars"></span>
+              <span class="review-count" id="product-reviews">0 reviews</span>
+            </div>
+            <span class="meta-separator">|</span>
+            <span class="in-stock">✓ In Stock</span>
+          </div>
+
+          <!-- Price -->
+          <div class="price-section">
+            <div class="detail-price-row">
+              <span class="detail-price-current" id="detail-price-current">—</span>
+              <span class="detail-price-original" id="detail-price-original" style="display:none;"></span>
+              <span class="detail-price-badge" id="detail-price-badge" style="display:none;"></span>
+            </div>
+            <p class="price-note">🚚 Free shipping on orders above ₹999 &nbsp;|&nbsp; GST inclusive</p>
+          </div>
+
+          <!-- Size Selector -->
+          <div class="selector-section" id="size-section">
+            <div class="selector-label">
+              <span>Select Size</span>
+              <a href="#">Size Guide</a>
+            </div>
+            <div class="size-options" id="size-options"></div>
+          </div>
+
+          <!-- Color Selector -->
+          <div class="selector-section" id="color-section">
+            <div class="selector-label">
+              <span>Select Color: <span id="selected-color-name" style="color:var(--clr-gold);"></span></span>
+            </div>
+            <div class="color-options" id="color-options"></div>
+          </div>
+
+          <!-- Quantity -->
+          <div class="quantity-row">
+            <span class="quantity-label">Quantity</span>
+            <div class="quantity-control">
+              <button class="qty-btn" onclick="changeQty(-1)">−</button>
+              <input type="number" class="qty-display" id="qty-input" value="1" min="1" max="10" readonly />
+              <button class="qty-btn" onclick="changeQty(1)">+</button>
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="cta-buttons">
+            <button class="btn btn-ghost btn-lg" id="add-cart-btn" onclick="handleAddToCart()">
+              🛍️ Add to Cart
+            </button>
+            <button class="btn btn-primary btn-lg" id="buy-now-btn" onclick="handleBuyNow()">
+              Buy Now
+            </button>
+            <button class="btn btn-outline btn-wishlist" id="wishlist-btn" title="Add to Wishlist" onclick="toggleWishlist()">♡</button>
+          </div>
+
+          <!-- Product Tabs -->
+          <div class="product-tabs">
+            <div class="tab-list">
+              <button class="tab-btn active" onclick="switchTab('description', this)">Description</button>
+              <button class="tab-btn" onclick="switchTab('specs', this)">Details</button>
+              <button class="tab-btn" onclick="switchTab('delivery', this)">Delivery</button>
+            </div>
+
+            <div id="tab-description" class="tab-content active">
+              <p class="description-text" id="product-description"></p>
+            </div>
+
+            <div id="tab-specs" class="tab-content">
+              <table class="specs-table" id="specs-table"></table>
+            </div>
+
+            <div id="tab-delivery" class="tab-content">
+              <div class="description-text">
+                <p><strong>Standard Delivery</strong> — 5–7 business days (Free above ₹999, else ₹99)</p><br/>
+                <p><strong>Express Delivery</strong> — 2–3 business days (₹149 additional)</p><br/>
+                <p><strong>Returns</strong> — 7-day hassle-free return policy. Item must be unused and in original packaging.</p><br/>
+                <p><strong>COD Available</strong> — Cash on delivery available for orders under ₹5,000.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Products -->
+    <div class="related-section">
+      <div class="section-header-flex" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:var(--space-xl);">
+        <div>
+          <span class="section-label">You May Also Like</span>
+          <h2 class="section-title">Related Products</h2>
+        </div>
+        <a href="/pages/products.html" class="btn btn-outline">View All</a>
+      </div>
+      <div class="grid-4" id="related-products"></div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2024 Rimjhim. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  const productId = new URLSearchParams(window.location.search).get('id');
+  let productData = null;
+  let selectedSize = null;
+  let selectedColor = null;
+  let qty = 1;
+  const colorMap = {
+    'Red': '#c0392b', 'Blue': '#2980b9', 'Green': '#27ae60', 'Yellow': '#f1c40f',
+    'Pink': '#e91e8a', 'Purple': '#8e44ad', 'Orange': '#e67e22', 'Black': '#2c2c2c',
+    'White': '#ecf0f1', 'Gold': '#d4a853', 'Maroon': '#800000', 'Navy': '#001f5b',
+    'Teal': '#008080', 'Cream': '#fffdd0', 'Peach': '#ffcba4', 'Lavender': '#e6e6fa'
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderNavbar('products');
+    if (!productId) { window.location.href = '/pages/products.html'; return; }
+    loadProduct();
+  });
+
+  async function loadProduct() {
+    const { data, error } = await _supabase
+      .from('products')
+      .select('*, categories(name, slug)')
+      .eq('id', productId)
+      .single();
+
+    if (error || !data) {
+      showToast('Product not found', 'error');
+      setTimeout(() => window.location.href = '/pages/products.html', 1500);
+      return;
+    }
+
+    productData = data;
+    renderProduct(data);
+    loadRelated(data.category_id, data.id);
+  }
+
+  function renderProduct(p) {
+    document.title = `${p.name} — Rimjhim`;
+    document.getElementById('product-skeleton').style.display = 'none';
+    document.getElementById('product-content').style.display = 'block';
+
+    document.getElementById('detail-breadcrumb').textContent = p.name;
+    document.getElementById('product-category').textContent = p.categories?.name || '';
+    document.getElementById('product-name').textContent = p.name;
+    document.getElementById('product-stars').textContent = starsHTML(p.rating || 4);
+    document.getElementById('product-reviews').textContent = `${p.reviews_count || 0} reviews`;
+    document.getElementById('product-description').textContent = p.description || '';
+
+    // Price
+    const displayPrice = p.sale_price || p.price;
+    document.getElementById('detail-price-current').textContent = formatPrice(displayPrice);
+    if (p.sale_price) {
+      document.getElementById('detail-price-original').style.display = '';
+      document.getElementById('detail-price-original').textContent = formatPrice(p.price);
+      const disc = discountPct(p.price, p.sale_price);
+      document.getElementById('detail-price-badge').style.display = '';
+      document.getElementById('detail-price-badge').textContent = `${disc}% OFF`;
+      document.getElementById('discount-badge').style.display = '';
+      document.getElementById('discount-badge').textContent = `${disc}% OFF`;
+    }
+
+    // Gallery
+    const allImages = [p.image_url, ...(p.images || [])].filter(Boolean);
+    document.getElementById('main-image').src = allImages[0];
+    document.getElementById('main-image').alt = p.name;
+    const thumbsHtml = allImages.map((img, i) =>
+      `<div class="gallery-thumb ${i===0?'active':''}" onclick="switchImage('${img}', this)">
+        <img src="${img}" alt="${p.name} view ${i+1}" loading="lazy" />
+      </div>`
+    ).join('');
+    document.getElementById('gallery-thumbs').innerHTML = thumbsHtml;
+
+    // Sizes
+    if (p.sizes?.length) {
+      selectedSize = p.sizes[0];
+      document.getElementById('size-options').innerHTML = p.sizes.map(s =>
+        `<button class="size-btn ${s === selectedSize ? 'selected' : ''}" onclick="selectSize('${s}', this)">${s}</button>`
+      ).join('');
+    } else {
+      document.getElementById('size-section').style.display = 'none';
+    }
+
+    // Colors
+    if (p.colors?.length) {
+      selectedColor = p.colors[0];
+      document.getElementById('selected-color-name').textContent = selectedColor;
+      document.getElementById('color-options').innerHTML = p.colors.map(c =>
+        `<div class="color-btn ${c === selectedColor ? 'selected' : ''}" onclick="selectColor('${c}', this)" title="${c}">
+          <div class="color-swatch" style="background:${colorMap[c] || '#888'};"></div>
+          <span class="color-name">${c}</span>
+        </div>`
+      ).join('');
+    } else {
+      document.getElementById('color-section').style.display = 'none';
+    }
+
+    // Specs
+    const specs = [
+      ['Category', p.categories?.name],
+      ['Fabric', 'Premium Quality'],
+      ['Care', 'Dry clean recommended'],
+      ['Country of Origin', 'India'],
+      ['SKU', `RJM-${p.id}-${Date.now().toString().slice(-4)}`]
+    ].filter(([, v]) => v);
+    document.getElementById('specs-table').innerHTML = specs.map(([k, v]) =>
+      `<tr><td>${k}</td><td>${v}</td></tr>`
+    ).join('');
+  }
+
+  function switchImage(src, el) {
+    document.getElementById('main-image').src = src;
+    document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function selectSize(size, el) {
+    selectedSize = size;
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function selectColor(color, el) {
+    selectedColor = color;
+    document.getElementById('selected-color-name').textContent = color;
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function changeQty(delta) {
+    qty = Math.max(1, Math.min(10, qty + delta));
+    document.getElementById('qty-input').value = qty;
+  }
+
+  async function handleAddToCart() {
+    if (!productData) return;
+    const sizes = productData.sizes || [];
+    const colors = productData.colors || [];
+    if (sizes.length && !selectedSize) { showToast('Please select a size', 'error'); return; }
+    if (colors.length && !selectedColor) { showToast('Please select a color', 'error'); return; }
+    await addToCart(productData.id, qty, selectedSize, selectedColor);
+  }
+
+  async function handleBuyNow() {
+    await handleAddToCart();
+    setTimeout(() => window.location.href = '/pages/cart.html', 500);
+  }
+
+  function toggleWishlist() {
+    const btn = document.getElementById('wishlist-btn');
+    const isWished = btn.textContent === '♥';
+    btn.textContent = isWished ? '♡' : '♥';
+    btn.style.color = isWished ? '' : 'var(--clr-rose)';
+    showToast(isWished ? 'Removed from wishlist' : 'Added to wishlist ❤️', 'info');
+  }
+
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
+  }
+
+  async function loadRelated(categoryId, excludeId) {
+    const { data, error } = await _supabase
+      .from('products')
+      .select('*, categories(name, slug)')
+      .eq('category_id', categoryId)
+      .neq('id', excludeId)
+      .limit(4);
+    if (error || !data?.length) return;
+    document.getElementById('related-products').innerHTML = data.map(p => {
+      const disc = discountPct(p.price, p.sale_price);
+      const displayPrice = p.sale_price || p.price;
+      return `
+        <div class="product-card fade-in">
+          <div class="product-card-image">
+            <img src="${p.image_url}" alt="${p.name}" loading="lazy" />
+            ${disc > 0 ? `<span class="product-card-badge">${disc}% OFF</span>` : ''}
+          </div>
+          <div class="product-card-body">
+            <p class="product-card-category">${p.categories?.name || ''}</p>
+            <h4 class="product-card-name"><a href="/pages/product-detail.html?id=${p.id}">${p.name}</a></h4>
+            <div class="product-card-rating">
+              <span class="stars">${starsHTML(p.rating || 4)}</span>
+              <span class="rating-count">(${p.reviews_count || 0})</span>
+            </div>
+            <div class="product-card-price">
+              <span class="price-current">${formatPrice(displayPrice)}</span>
+              ${p.sale_price ? `<span class="price-original">${formatPrice(p.price)}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+</script>
+</body>
+</html>

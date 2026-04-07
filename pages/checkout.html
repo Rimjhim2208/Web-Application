@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — TimePiece</title>
+  <meta name="description" content="Complete your watch order at TimePiece. Secure payment via Razorpay." />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* ── Checkout Styles ───────────────────────────────────── */
+    .checkout-page { padding-top: calc(var(--nav-height) + var(--space-2xl)); padding-bottom: var(--space-3xl); }
+
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: var(--space-xl);
+      align-items: start;
+    }
+
+    .checkout-section {
+      background: var(--grad-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+    }
+
+    .checkout-section-title {
+      font-size: 1rem;
+      color: var(--clr-gold);
+      font-family: var(--font-heading);
+      margin-bottom: var(--space-lg);
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--clr-border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checkout-section-title .step-num {
+      width: 28px; height: 28px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* Order Summary Right Panel */
+    .checkout-summary {
+      background: var(--grad-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      position: sticky;
+      top: calc(var(--nav-height) + 20px);
+    }
+
+    .summary-product-list { margin-bottom: var(--space-lg); }
+
+    .summary-product-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--clr-border);
+    }
+    .summary-product-item:last-child { border-bottom: none; }
+
+    .summary-product-img {
+      width: 64px; height: 80px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .summary-product-img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    .summary-product-info { flex: 1; }
+    .summary-product-name {
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      color: var(--clr-ivory);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .summary-product-meta { font-size: 0.72rem; color: var(--clr-text-muted); }
+    .summary-product-price {
+      text-align: right;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+    }
+
+    .summary-divider { height: 1px; background: var(--clr-border); margin: var(--space-md) 0; }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      color: var(--clr-text-muted);
+      margin-bottom: 10px;
+    }
+    .summary-row.total {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--clr-ivory);
+      border-top: 1px solid var(--clr-border);
+      padding-top: 12px;
+      margin-top: 6px;
+    }
+    .summary-row.total .val { color: #ffffff; font-size: 1.2rem; }
+
+    /* Payment Method */
+    .payment-methods { display: flex; flex-direction: column; gap: 12px; }
+    .payment-method {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border: 1.5px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .payment-method.selected {
+      border-color: #ffffff;
+      background: rgba(255,255,255,0.04);
+    }
+    .payment-method-radio {
+      width: 18px; height: 18px;
+      border: 2px solid var(--clr-border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition-fast);
+      flex-shrink: 0;
+    }
+    .payment-method.selected .payment-method-radio {
+      border-color: #ffffff;
+      background: #ffffff;
+    }
+    .payment-method.selected .payment-method-radio::after {
+      content: '';
+      width: 6px; height: 6px;
+      background: #0d0d0d;
+      border-radius: 50%;
+    }
+    .payment-method-info { flex: 1; }
+    .payment-method-name { font-size: 0.9rem; font-weight: 600; color: var(--clr-ivory); margin-bottom: 2px; }
+    .payment-method-desc { font-size: 0.75rem; color: var(--clr-text-muted); }
+    .payment-method-icon { font-size: 1.5rem; }
+
+    /* Place Order Button */
+    .place-order-btn {
+      width: 100%;
+      margin-top: var(--space-lg);
+      padding: 1rem;
+      font-size: 1rem;
+      position: relative;
+    }
+
+    .place-order-btn .spinner {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: none;
+    }
+    .place-order-btn.loading .spinner { display: inline-block; }
+
+    /* Success Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-lg);
+    }
+
+    .modal-overlay.hidden { display: none; }
+
+    .success-modal {
+      background: var(--clr-bg-2);
+      border: 1px solid rgba(76,175,125,0.3);
+      border-radius: var(--radius-xl);
+      padding: var(--space-2xl);
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .success-icon {
+      font-size: 4rem;
+      margin-bottom: var(--space-lg);
+    }
+
+    .success-title {
+      font-size: 1.8rem;
+      color: var(--clr-ivory);
+      margin-bottom: var(--space-sm);
+    }
+
+    .success-order-num {
+      background: rgba(76,175,125,0.1);
+      border: 1px solid rgba(76,175,125,0.3);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin: var(--space-lg) 0;
+    }
+
+    .success-order-num p { font-size: 0.8rem; color: var(--clr-text-muted); margin-bottom: 4px; }
+    .success-order-num strong { color: var(--clr-success); font-size: 1.1rem; font-family: monospace; }
+
+    @media (max-width: 768px) {
+      .checkout-grid { grid-template-columns: 1fr; }
+      .checkout-summary { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="page-loader" class="loader-overlay"><div class="loader-ring"></div></div>
+<header id="navbar" class="navbar"></header>
+
+<!-- Success Modal -->
+<div class="modal-overlay hidden" id="success-modal">
+  <div class="success-modal">
+    <div class="success-icon"><svg width="64" height="64" fill="none" stroke="#4ade80" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg></div>
+    <h2 class="success-title">Order Placed!</h2>
+    <p class="text-muted">Thank you for shopping with TimePiece. Your timepiece is on its way!</p>
+    <div class="success-order-num">
+      <p>Order Number</p>
+      <strong id="success-order-num">TP-—</strong>
+    </div>
+    <p class="text-muted" style="font-size:0.85rem;margin-bottom:1.5rem;">You'll receive a confirmation email shortly. Expected delivery in 5–7 business days.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="/pages/orders.html" class="btn btn-primary">View My Orders</a>
+      <a href="/pages/products.html" class="btn btn-outline">Continue Shopping</a>
+    </div>
+  </div>
+</div>
+
+<main class="checkout-page">
+  <div class="container">
+    <nav class="breadcrumb" style="margin-bottom:var(--space-xl);">
+      <a href="/index.html">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="/pages/cart.html">Cart</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>Checkout</span>
+    </nav>
+
+    <h1 style="margin-bottom:var(--space-xl);">Secure Checkout</h1>
+
+    <div class="checkout-grid">
+      <!-- Left: Forms -->
+      <div>
+
+        <!-- Contact Info -->
+        <div class="checkout-section">
+          <h3 class="checkout-section-title">
+            <span class="step-num">1</span> Contact Information
+          </h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="ship-name" class="form-control" placeholder="Priya Sharma" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" id="ship-phone" class="form-control" placeholder="+91 98765 43210" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="ship-email" class="form-control" placeholder="you@example.com" required />
+          </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="checkout-section">
+          <h3 class="checkout-section-title">
+            <span class="step-num">2</span> Shipping Address
+          </h3>
+          <div class="form-group">
+            <label class="form-label">Address Line 1</label>
+            <input type="text" id="ship-addr1" class="form-control" placeholder="Flat/House No., Building, Street" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Address Line 2 (Optional)</label>
+            <input type="text" id="ship-addr2" class="form-control" placeholder="Area, Locality" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">City</label>
+              <input type="text" id="ship-city" class="form-control" placeholder="Mumbai" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">State</label>
+              <select id="ship-state" class="form-control" required>
+                <option value="">Select State</option>
+                <option>Andhra Pradesh</option><option>Assam</option><option>Bihar</option>
+                <option>Delhi</option><option>Gujarat</option><option>Haryana</option>
+                <option>Himachal Pradesh</option><option>Jharkhand</option><option>Karnataka</option>
+                <option>Kerala</option><option>Madhya Pradesh</option><option selected>Maharashtra</option>
+                <option>Odisha</option><option>Punjab</option><option>Rajasthan</option>
+                <option>Tamil Nadu</option><option>Telangana</option><option>Uttar Pradesh</option>
+                <option>Uttarakhand</option><option>West Bengal</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">PIN Code</label>
+              <input type="text" id="ship-pincode" class="form-control" placeholder="400001" maxlength="6" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Country</label>
+              <input type="text" id="ship-country" class="form-control" value="India" readonly />
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="checkout-section">
+          <h3 class="checkout-section-title">
+            <span class="step-num">3</span> Payment Method
+          </h3>
+          <div class="payment-methods">
+            <div class="payment-method selected" id="pay-razorpay" onclick="selectPayment('razorpay')">
+              <div class="payment-method-radio"></div>
+              <div class="payment-method-info">
+                <p class="payment-method-name">Pay Online</p>
+                <p class="payment-method-desc">UPI, Cards, Net Banking, Wallets via Razorpay</p>
+              </div>
+              <div class="payment-method-icon"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+            </div>
+            <div class="payment-method" id="pay-cod" onclick="selectPayment('cod')">
+              <div class="payment-method-radio"></div>
+              <div class="payment-method-info">
+                <p class="payment-method-name">Cash on Delivery</p>
+                <p class="payment-method-desc">Pay when you receive your order (₹30 handling fee, orders up to ₹5,000)</p>
+              </div>
+              <div class="payment-method-icon"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: Order Summary -->
+      <div class="checkout-summary">
+        <h3 style="font-size:1.1rem;color:var(--clr-ivory);margin-bottom:var(--space-lg);padding-bottom:12px;border-bottom:1px solid var(--clr-border);">
+          Order Summary
+        </h3>
+
+        <div class="summary-product-list" id="checkout-items"></div>
+        <div class="summary-divider"></div>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="co-subtotal">—</span>
+        </div>
+        <div class="summary-row" id="co-promo-row" style="display:none;">
+          <span style="color:var(--clr-success);">Promo Discount</span>
+          <span style="color:var(--clr-success);" id="co-promo-val">—</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery</span>
+          <span id="co-delivery">—</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span class="val" id="co-total">—</span>
+        </div>
+
+        <button class="btn btn-primary place-order-btn" id="place-order-btn" onclick="placeOrder()">
+          <span class="btn-text">Place Order & Pay</span>
+          <div class="spinner"></div>
+        </button>
+
+        <p style="font-size:0.72rem;color:var(--clr-text-muted);text-align:center;margin-top:12px;">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:-1px;margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Secured by Razorpay &nbsp;|&nbsp; 256-bit SSL Encryption
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="toast-container"></div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  let checkoutData = null;
+  let cartItems = [];
+  let selectedPayment = 'razorpay';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    renderNavbar('');
+    const authed = await requireAuth();
+    if (!authed) return;
+
+    // Load checkout summary from sessionStorage
+    const stored = sessionStorage.getItem('rimjhim_checkout');
+    if (!stored) { window.location.href = '/pages/cart.html'; return; }
+    checkoutData = JSON.parse(stored);
+
+    // Pre-fill user info
+    prefillUserInfo();
+
+    // Load cart items for summary
+    await loadCheckoutItems();
+
+    // Render summary
+    renderSummary();
+  });
+
+  async function prefillUserInfo() {
+    const { data } = await _supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    document.getElementById('ship-name').value = data?.full_name || currentUser.user_metadata?.full_name || '';
+    document.getElementById('ship-phone').value = data?.phone || '';
+    document.getElementById('ship-email').value = currentUser.email || '';
+    if (data?.address) document.getElementById('ship-addr1').value = data.address;
+    if (data?.city) document.getElementById('ship-city').value = data.city;
+    if (data?.pincode) document.getElementById('ship-pincode').value = data.pincode;
+  }
+
+  async function loadCheckoutItems() {
+    const { data, error } = await _supabase
+      .from('cart_items')
+      .select('*, products(*, categories(name))')
+      .eq('user_id', currentUser.id);
+
+    cartItems = data || [];
+
+    document.getElementById('checkout-items').innerHTML = cartItems.map(item => {
+      const p = item.products;
+      if (!p) return '';
+      const price = (p.sale_price || p.price) * item.quantity;
+      return `
+        <div class="summary-product-item">
+          <div class="summary-product-img">
+            <img src="${p.image_url}" alt="${p.name}" loading="lazy" />
+          </div>
+          <div class="summary-product-info">
+            <p class="summary-product-name">${p.name}</p>
+            <p class="summary-product-meta">
+              ${item.quantity} × ${formatPrice(p.sale_price || p.price)}
+              ${item.size ? ` | Size: ${item.size}` : ''}
+              ${item.color ? ` | ${item.color}` : ''}
+            </p>
+          </div>
+          <div class="summary-product-price">${formatPrice(price)}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderSummary() {
+    if (!checkoutData) return;
+    document.getElementById('co-subtotal').textContent = formatPrice(checkoutData.subtotal);
+    document.getElementById('co-delivery').textContent = checkoutData.delivery === 0 ? 'FREE' : formatPrice(checkoutData.delivery);
+    document.getElementById('co-total').textContent = formatPrice(checkoutData.total);
+
+    if (checkoutData.promoDiscount > 0) {
+      document.getElementById('co-promo-row').style.display = 'flex';
+      document.getElementById('co-promo-val').textContent = `-${formatPrice(checkoutData.promoDiscount)}`;
+    }
+  }
+
+  function selectPayment(method) {
+    selectedPayment = method;
+    document.getElementById('pay-razorpay').classList.toggle('selected', method === 'razorpay');
+    document.getElementById('pay-cod').classList.toggle('selected', method === 'cod');
+    const btn = document.getElementById('place-order-btn');
+    btn.querySelector('.btn-text').textContent = method === 'cod' ? 'Place Order (COD)' : 'Place Order & Pay';
+  }
+
+  function validateForm() {
+    const fields = [
+      { id: 'ship-name', label: 'Full Name' },
+      { id: 'ship-phone', label: 'Phone Number' },
+      { id: 'ship-email', label: 'Email' },
+      { id: 'ship-addr1', label: 'Address' },
+      { id: 'ship-city', label: 'City' },
+      { id: 'ship-state', label: 'State' },
+      { id: 'ship-pincode', label: 'PIN Code' },
+    ];
+    for (const f of fields) {
+      const el = document.getElementById(f.id);
+      if (!el.value.trim()) {
+        showToast(`Please enter ${f.label}`, 'error');
+        el.focus();
+        el.classList.add('error');
+        return false;
+      }
+      el.classList.remove('error');
+    }
+    return true;
+  }
+
+  function getShippingAddress() {
+    return {
+      name: document.getElementById('ship-name').value.trim(),
+      phone: document.getElementById('ship-phone').value.trim(),
+      email: document.getElementById('ship-email').value.trim(),
+      address: document.getElementById('ship-addr1').value.trim() + (document.getElementById('ship-addr2').value ? ', ' + document.getElementById('ship-addr2').value : ''),
+      city: document.getElementById('ship-city').value.trim(),
+      state: document.getElementById('ship-state').value,
+      pincode: document.getElementById('ship-pincode').value.trim(),
+      country: 'India'
+    };
+  }
+
+  async function placeOrder() {
+    if (!validateForm()) return;
+    if (!checkoutData) return;
+
+    const btn = document.getElementById('place-order-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    if (selectedPayment === 'cod') {
+      await createOrder('COD', null);
+      return;
+    }
+
+    // ── Razorpay Payment ──────────────────────────────────────
+    const addr = getShippingAddress();
+    const amountPaise = Math.round(checkoutData.total * 100);
+
+    const options = {
+      key: RAZORPAY_KEY_ID,
+      amount: amountPaise,
+      currency: 'INR',
+      name: 'TimePiece',
+      description: `Order Payment — ${cartItems.length} item(s)`,
+      image: '',
+      // NOTE: In production, order_id should come from your backend via Razorpay Orders API
+      handler: async function(response) {
+        // Payment successful — create order in Supabase
+        await createOrder('PAID', response.razorpay_payment_id);
+      },
+      prefill: {
+        name: addr.name,
+        email: addr.email,
+        contact: addr.phone
+      },
+      notes: {
+        address: addr.address,
+        city: addr.city
+      },
+      theme: {
+        color: '#0d0d0d'
+      },
+      modal: {
+        ondismiss: () => {
+          btn.classList.remove('loading');
+          btn.disabled = false;
+          showToast('Payment cancelled', 'info');
+        }
+      }
+    };
+
+    try {
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function(response) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        showToast(`Payment failed: ${response.error.description}`, 'error');
+      });
+      rzp.open();
+    } catch(e) {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      showToast('Could not load payment gateway. Please try again.', 'error');
+    }
+  }
+
+  async function createOrder(paymentMethod, paymentId) {
+    const addr = getShippingAddress();
+    const orderNum = generateOrderNumber();
+
+    // Create order
+    const { data: order, error: orderErr } = await _supabase
+      .from('orders')
+      .insert({
+        user_id: currentUser.id,
+        order_number: orderNum,
+        total_amount: checkoutData.total,
+        status: paymentMethod === 'PAID' ? 'paid' : 'pending',
+        payment_id: paymentId || null,
+        shipping_address: addr
+      })
+      .select()
+      .single();
+
+    if (orderErr) {
+      showToast('Error creating order. Please contact support.', 'error');
+      document.getElementById('place-order-btn').classList.remove('loading');
+      document.getElementById('place-order-btn').disabled = false;
+      return;
+    }
+
+    // Create order items
+    const orderItems = cartItems.map(item => ({
+      order_id: order.id,
+      product_id: item.product_id,
+      product_name: item.products?.name || '',
+      product_image: item.products?.image_url || '',
+      price: item.products?.sale_price || item.products?.price || 0,
+      quantity: item.quantity,
+      size: item.size || '',
+      color: item.color || ''
+    }));
+
+    await _supabase.from('order_items').insert(orderItems);
+
+    // Clear cart
+    await _supabase.from('cart_items').delete().eq('user_id', currentUser.id);
+    sessionStorage.removeItem('rimjhim_checkout');
+
+    // Show success
+    document.getElementById('success-order-num').textContent = orderNum;
+    document.getElementById('success-modal').classList.remove('hidden');
+    updateCartBadge();
+  }
+</script>
+</body>
+</html>

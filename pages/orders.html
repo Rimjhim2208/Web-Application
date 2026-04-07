@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders — TimePiece</title>
+  <meta name="description" content="Track your watch orders at TimePiece." />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* ── Orders Page Styles ─────────────────────────────────── */
+    .orders-page { padding-top: calc(var(--nav-height) + var(--space-2xl)); padding-bottom: var(--space-3xl); }
+
+    .orders-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: var(--space-xl);
+      align-items: start;
+    }
+
+    /* Profile Sidebar */
+    .profile-sidebar {
+      background: var(--grad-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      position: sticky;
+      top: calc(var(--nav-height) + 20px);
+    }
+
+    .profile-header {
+      padding: var(--space-xl);
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(13,13,13,0.8) 100%);
+      border-bottom: 1px solid var(--clr-border);
+      text-align: center;
+    }
+
+    .profile-avatar {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      border: 2px solid rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto var(--space-md);
+    }
+
+    .profile-name {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      color: var(--clr-ivory);
+      margin-bottom: 4px;
+    }
+
+    .profile-email {
+      font-size: 0.78rem;
+      color: var(--clr-text-muted);
+    }
+
+    .profile-nav { padding: var(--space-sm); }
+
+    .profile-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px var(--space-md);
+      border-radius: var(--radius-sm);
+      color: var(--clr-text-muted);
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .profile-nav-item:hover { background: rgba(255,255,255,0.05); color: var(--clr-text); }
+    .profile-nav-item.active { background: rgba(255,255,255,0.08); color: #ffffff; font-weight: 600; }
+    .profile-nav-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+
+    /* Orders Main */
+    .orders-main { width: 100%; }
+
+    .orders-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-xl);
+      flex-wrap: wrap;
+      gap: var(--space-md);
+    }
+
+    .order-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .order-filter-btn {
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--clr-border);
+      background: transparent;
+      color: var(--clr-text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .order-filter-btn.active, .order-filter-btn:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: #ffffff;
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* Order Card */
+    .order-card {
+      background: var(--grad-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-lg);
+      overflow: hidden;
+      transition: border-color var(--transition-normal);
+    }
+    .order-card:hover { border-color: rgba(255,255,255,0.15); }
+
+    .order-card-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-md);
+      padding: var(--space-lg) var(--space-xl);
+      border-bottom: 1px solid var(--clr-border);
+      align-items: center;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .order-num {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .order-date { font-size: 0.78rem; color: var(--clr-text-muted); margin-top: 2px; }
+
+    .order-header-right { text-align: right; }
+
+    .order-total {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--clr-ivory);
+      font-family: var(--font-heading);
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+    .status-pending   { background: rgba(229,192,123,0.15); color: var(--clr-warning);  border: 1px solid rgba(229,192,123,0.3); }
+    .status-paid      { background: rgba(76,175,125,0.15);  color: var(--clr-success);  border: 1px solid rgba(76,175,125,0.3); }
+    .status-shipped   { background: rgba(97,175,239,0.15);  color: #61afef;             border: 1px solid rgba(97,175,239,0.3); }
+    .status-delivered { background: rgba(76,175,125,0.2);   color: var(--clr-success);  border: 1px solid rgba(76,175,125,0.4); }
+    .status-cancelled { background: rgba(224,108,117,0.15); color: var(--clr-error);    border: 1px solid rgba(224,108,117,0.3); }
+
+    /* Order Items Preview */
+    .order-items-preview {
+      display: flex;
+      padding: var(--space-md) var(--space-xl);
+      gap: var(--space-md);
+      align-items: center;
+      border-bottom: 1px solid var(--clr-border);
+    }
+
+    .order-item-thumbs {
+      display: flex;
+      gap: -8px;
+      flex-shrink: 0;
+    }
+
+    .order-item-thumb {
+      width: 52px; height: 64px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 2px solid var(--clr-bg);
+      margin-right: -12px;
+    }
+    .order-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .order-items-summary-text { flex: 1; }
+    .order-items-names {
+      font-size: 0.88rem;
+      color: var(--clr-text);
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+    .order-items-count { font-size: 0.75rem; color: var(--clr-text-muted); }
+
+    /* Expandable Items */
+    .order-items-detail {
+      display: none;
+      padding: 0 var(--space-xl) var(--space-md);
+    }
+    .order-items-detail.open { display: block; }
+
+    .order-detail-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--clr-border);
+      font-size: 0.85rem;
+    }
+    .order-detail-item:last-child { border-bottom: none; }
+
+    .order-detail-img {
+      width: 50px; height: 62px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .order-detail-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .order-detail-info { flex: 1; }
+    .order-detail-name { color: var(--clr-ivory); margin-bottom: 3px; }
+    .order-detail-meta { color: var(--clr-text-muted); font-size: 0.75rem; }
+    .order-detail-price { color: #ffffff; font-weight: 700; }
+
+    /* Order Footer */
+    .order-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px var(--space-xl);
+      background: rgba(255,255,255,0.01);
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    /* Status Timeline */
+    .order-timeline {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      font-size: 0.72rem;
+    }
+
+    .timeline-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+    }
+
+    .timeline-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--clr-border);
+      background: var(--clr-bg-3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem;
+      z-index: 1;
+    }
+
+    .timeline-dot.done { border-color: var(--clr-success); background: rgba(76,175,125,0.2); }
+    .timeline-dot.current { border-color: #ffffff; background: rgba(255,255,255,0.12); }
+
+    .timeline-line {
+      width: 40px; height: 2px;
+      background: var(--clr-border);
+    }
+    .timeline-line.done { background: var(--clr-success); }
+
+    .timeline-label { color: var(--clr-text-muted); font-size: 0.65rem; white-space: nowrap; }
+
+    @media (max-width: 768px) {
+      .orders-layout { grid-template-columns: 1fr; }
+      .profile-sidebar { position: static; }
+      .order-card-header { grid-template-columns: 1fr; }
+      .order-header-right { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="page-loader" class="loader-overlay"><div class="loader-ring"></div></div>
+<header id="navbar" class="navbar"></header>
+
+<main class="orders-page">
+  <div class="container">
+    <nav class="breadcrumb" style="margin-bottom:var(--space-xl);">
+      <a href="/index.html">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <span>My Orders</span>
+    </nav>
+
+    <div class="orders-layout">
+
+      <!-- Profile Sidebar -->
+      <aside class="profile-sidebar">
+        <div class="profile-header">
+          <div class="profile-avatar" id="profile-avatar"></div>
+          <p class="profile-name" id="profile-name">Loading…</p>
+          <p class="profile-email" id="profile-email"></p>
+        </div>
+        <nav class="profile-nav">
+          <button class="profile-nav-item active">
+            <span class="profile-nav-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></span> My Orders
+          </button>
+          <button class="profile-nav-item" onclick="window.location.href='/pages/products.html'">
+            <span class="profile-nav-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></span> Browse Shop
+          </button>
+          <button class="profile-nav-item" onclick="window.location.href='/pages/cart.html'">
+            <span class="profile-nav-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></span> My Cart
+          </button>
+          <button class="profile-nav-item" onclick="signOut()">
+            <span class="profile-nav-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Sign Out
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Orders Main -->
+      <div class="orders-main">
+        <div class="orders-topbar">
+          <h2>My Orders</h2>
+          <div class="order-filters">
+            <button class="order-filter-btn active" onclick="filterOrders('all', this)">All Orders</button>
+            <button class="order-filter-btn" onclick="filterOrders('paid', this)">Paid</button>
+            <button class="order-filter-btn" onclick="filterOrders('shipped', this)">Shipped</button>
+            <button class="order-filter-btn" onclick="filterOrders('delivered', this)">Delivered</button>
+          </div>
+        </div>
+
+        <!-- Loading Skeleton -->
+        <div id="orders-loading">
+          <div style="height:160px;border-radius:var(--radius-lg);" class="skeleton"></div>
+          <div style="height:160px;border-radius:var(--radius-lg);margin-top:1rem;" class="skeleton"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="orders-empty" style="display:none;">
+          <div class="empty-state-icon">
+            <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24" opacity="0.3"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          </div>
+          <h3>No orders yet</h3>
+          <p>Looks like you haven't placed any orders. Start exploring our beautiful collections!</p>
+          <a href="/pages/products.html" class="btn btn-primary btn-lg">Shop Now</a>
+        </div>
+
+        <!-- Orders List -->
+        <div id="orders-list"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2024 TimePiece. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  let allOrders = [];
+  let activeFilter = 'all';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    renderNavbar('orders');
+    const authed = await requireAuth();
+    if (!authed) return;
+    await loadProfile();
+    await loadOrders();
+  });
+
+  async function loadProfile() {
+    const { data } = await _supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    const name = data?.full_name || currentUser.user_metadata?.full_name || 'User';
+    document.getElementById('profile-name').textContent = name;
+    document.getElementById('profile-email').textContent = currentUser.email;
+    document.getElementById('profile-avatar').textContent = name.charAt(0).toUpperCase();
+  }
+
+  async function loadOrders() {
+    const { data, error } = await _supabase
+      .from('orders')
+      .select('*, order_items(*, products(name, image_url))')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false });
+
+    document.getElementById('orders-loading').style.display = 'none';
+
+    if (error || !data?.length) {
+      document.getElementById('orders-empty').style.display = 'block';
+      return;
+    }
+
+    allOrders = data;
+    renderOrders(data);
+  }
+
+  function filterOrders(status, btn) {
+    activeFilter = status;
+    document.querySelectorAll('.order-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filtered = status === 'all' ? allOrders : allOrders.filter(o => o.status === status);
+    if (!filtered.length) {
+      document.getElementById('orders-list').innerHTML = '';
+      document.getElementById('orders-empty').style.display = 'block';
+    } else {
+      document.getElementById('orders-empty').style.display = 'none';
+      renderOrders(filtered);
+    }
+  }
+
+  function renderOrders(orders) {
+    const statusConfig = {
+      pending:   { label: 'Pending', icon: '', cls: 'status-pending' },
+      paid:      { label: 'Paid',    icon: '', cls: 'status-paid' },
+      shipped:   { label: 'Shipped', icon: '', cls: 'status-shipped' },
+      delivered: { label: 'Delivered', icon: '', cls: 'status-delivered' },
+      cancelled: { label: 'Cancelled', icon: '', cls: 'status-cancelled' }
+    };
+
+    const getTimelineStatus = (status) => {
+      const steps = ['pending', 'paid', 'shipped', 'delivered'];
+      const idx = steps.indexOf(status);
+      return steps.map((s, i) => ({
+        label: s.charAt(0).toUpperCase() + s.slice(1),
+        done: i <= idx,
+        current: i === idx
+      }));
+    };
+
+    document.getElementById('orders-list').innerHTML = orders.map(order => {
+      const st = statusConfig[order.status] || statusConfig.pending;
+      const items = order.order_items || [];
+      const date = new Date(order.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+      const timeline = order.status !== 'cancelled' ? getTimelineStatus(order.status) : [];
+
+      const thumbsHtml = items.slice(0, 4).map(item =>
+        `<div class="order-item-thumb">
+          <img src="${item.products?.image_url || ''}" alt="${item.product_name}" loading="lazy" />
+        </div>`
+      ).join('');
+
+      const namesHtml = items.slice(0, 2).map(i => i.product_name).join(', ') +
+        (items.length > 2 ? ` +${items.length - 2} more` : '');
+
+      const timelineHtml = timeline.length ? `
+        <div class="order-timeline">
+          ${timeline.map((step, i) => `
+            ${i > 0 ? `<div class="timeline-line ${step.done ? 'done' : ''}"></div>` : ''}
+            <div class="timeline-step">
+              <div class="timeline-dot ${step.current ? 'current' : step.done ? 'done' : ''}">
+                ${step.done ? '✓' : (i + 1)}
+              </div>
+              <span class="timeline-label">${step.label}</span>
+            </div>`).join('')}
+        </div>` : '';
+
+      const detailItemsHtml = items.map(item => `
+        <div class="order-detail-item">
+          <div class="order-detail-img">
+            <img src="${item.products?.image_url || ''}" alt="${item.product_name}" loading="lazy" />
+          </div>
+          <div class="order-detail-info">
+            <p class="order-detail-name">${item.product_name}</p>
+            <p class="order-detail-meta">Qty: ${item.quantity}${item.size ? ` | Size: ${item.size}` : ''}${item.color ? ` | ${item.color}` : ''}</p>
+          </div>
+          <div class="order-detail-price">${formatPrice(item.price * item.quantity)}</div>
+        </div>`).join('');
+
+      return `
+        <div class="order-card">
+          <div class="order-card-header">
+            <div>
+              <p class="order-num">${order.order_number}</p>
+              <p class="order-date">Placed on ${date}</p>
+            </div>
+            <div class="order-header-right">
+              <p class="order-total">${formatPrice(order.total_amount)}</p>
+              <div class="status-badge ${st.cls}">${st.icon} ${st.label}</div>
+            </div>
+          </div>
+          <div class="order-items-preview">
+            <div class="order-item-thumbs">${thumbsHtml}</div>
+            <div class="order-items-summary-text" style="margin-left:12px;">
+              <p class="order-items-names">${namesHtml}</p>
+              <p class="order-items-count">${items.length} item${items.length !== 1 ? 's' : ''}</p>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="toggleOrderDetails(${order.id})">
+              Details ▾
+            </button>
+          </div>
+          <div class="order-items-detail" id="order-detail-${order.id}">
+            ${detailItemsHtml}
+          </div>
+          <div class="order-card-footer">
+            ${timelineHtml}
+            <div style="display:flex;gap:8px;">
+              ${order.status === 'delivered' ? `<button class="btn btn-outline btn-sm">Review</button>` : ''}
+              ${order.status === 'pending' ? `<button class="btn btn-danger btn-sm" onclick="cancelOrder(${order.id})">Cancel</button>` : ''}
+              <a href="/pages/products.html" class="btn btn-ghost btn-sm">Buy Again</a>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleOrderDetails(orderId) {
+    const el = document.getElementById(`order-detail-${orderId}`);
+    el.classList.toggle('open');
+  }
+
+  async function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+    const { error } = await _supabase
+      .from('orders')
+      .update({ status: 'cancelled' })
+      .eq('id', orderId)
+      .eq('user_id', currentUser.id);
+
+    if (error) { showToast('Could not cancel order', 'error'); return; }
+    showToast('Order cancelled successfully', 'success');
+    loadOrders();
+  }
+</script>
+</body>
+</html>

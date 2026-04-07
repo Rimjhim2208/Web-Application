@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop Watches — TimePiece</title>
+  <meta name="description" content="Browse all watches — luxury, sports, smart, casual and vintage. Filter by brand, price and more." />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/products.css" />
+</head>
+<body>
+
+<div id="page-loader" class="loader-overlay">
+  <div class="loader-ring"></div>
+</div>
+
+<header id="navbar" class="navbar"></header>
+
+<!-- Page Header -->
+<div class="page-header-slim">
+  <div class="container">
+    <div class="page-header-inner">
+      <nav class="breadcrumb" aria-label="breadcrumb">
+        <a href="/index.html">Home</a>
+        <span class="breadcrumb-sep">›</span>
+        <span id="breadcrumb-current">Shop</span>
+      </nav>
+      <h1 id="page-title">Watch Collection</h1>
+    </div>
+  </div>
+</div>
+
+<main class="section" style="padding-top:var(--space-xl);">
+  <div class="container">
+
+    <!-- Mobile Filter Toggle -->
+    <button class="btn btn-ghost mobile-filter-toggle" id="mobile-filter-btn" onclick="toggleMobileFilter()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="16" y2="12"/><line x1="4" y1="18" x2="12" y2="18"/></svg>
+      Filters
+    </button>
+
+    <!-- Active Filter Tags -->
+    <div class="filter-active-tags" id="filter-tags"></div>
+
+    <div class="products-layout">
+
+      <!-- Sidebar -->
+      <aside class="products-sidebar" id="products-sidebar">
+        <div class="sidebar-close-btn">
+          <button class="btn btn-ghost btn-sm" onclick="toggleMobileFilter()">✕ Close</button>
+        </div>
+
+        <!-- Search -->
+        <div class="sidebar-section">
+          <h4 class="sidebar-title">Search</h4>
+          <div class="input-icon-wrap">
+            <span class="input-icon">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            </span>
+            <input type="text" id="search-input" class="form-control" placeholder="Search watches..." style="padding-left:2.5rem;" oninput="debounceSearch()" />
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="sidebar-section">
+          <h4 class="sidebar-title">Categories</h4>
+          <div class="filter-list" id="category-filters">
+            <div class="filter-item active" data-cat="all" onclick="setCategory('all', this)">
+              All Products <span class="filter-count" id="count-all">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sort -->
+        <div class="sidebar-section">
+          <h4 class="sidebar-title">Sort By</h4>
+          <div class="sort-options">
+            <div class="sort-option active" data-sort="featured" onclick="setSort('featured', this)">Featured</div>
+            <div class="sort-option" data-sort="newest" onclick="setSort('newest', this)">Newest First</div>
+            <div class="sort-option" data-sort="price_asc" onclick="setSort('price_asc', this)">Price: Low to High</div>
+            <div class="sort-option" data-sort="price_desc" onclick="setSort('price_desc', this)">Price: High to Low</div>
+            <div class="sort-option" data-sort="rating" onclick="setSort('rating', this)">Top Rated</div>
+          </div>
+        </div>
+
+        <!-- Price Filter -->
+        <div class="sidebar-section">
+          <h4 class="sidebar-title">Price Range</h4>
+          <div class="price-range">
+            <input type="range" class="price-range-slider" id="price-max" min="0" max="30000" value="30000" step="100" oninput="updatePriceFilter()" />
+            <div class="price-display">₹0 — <span id="price-display-max">₹30,000</span></div>
+          </div>
+        </div>
+
+        <!-- Rating Filter -->
+        <div class="sidebar-section">
+          <h4 class="sidebar-title">Minimum Rating</h4>
+          <div class="rating-filters">
+            <div class="rating-filter active" data-min-rating="0" onclick="setRating(0, this)">
+              <span>All Ratings</span>
+            </div>
+            <div class="rating-filter" data-min-rating="4" onclick="setRating(4, this)">
+              <span class="rating-stars">★★★★</span>
+              <span class="rating-and-above">4+ & above</span>
+            </div>
+            <div class="rating-filter" data-min-rating="3" onclick="setRating(3, this)">
+              <span class="rating-stars">★★★</span>
+              <span class="rating-and-above">3+ & above</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sale Filter -->
+        <div class="sidebar-section">
+          <h4 class="sidebar-title">Offers</h4>
+          <div class="filter-list">
+            <div class="filter-item" id="sale-filter" onclick="toggleSaleFilter()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              On Sale Only
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-clear-filters" onclick="clearAllFilters()">✕ Clear All Filters</button>
+      </aside>
+
+      <!-- Main Products -->
+      <div class="products-main">
+        <!-- Topbar -->
+        <div class="products-topbar">
+          <p class="products-count"><span id="product-count">0</span> products found</p>
+          <div class="topbar-right">
+          <div class="view-toggles">
+              <button class="view-btn active" id="view-grid" onclick="setView('grid')" title="Grid View">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+              </button>
+              <button class="view-btn" id="view-list" onclick="setView('list')" title="List View">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="products-grid">
+          <!-- Skeleton loaders -->
+          <div class="product-card"><div class="skeleton" style="aspect-ratio:3/4;"></div><div style="padding:1rem;"><div class="skeleton" style="height:16px;margin-bottom:8px;"></div><div class="skeleton" style="height:14px;width:60%;"></div></div></div>
+          <div class="product-card"><div class="skeleton" style="aspect-ratio:3/4;"></div><div style="padding:1rem;"><div class="skeleton" style="height:16px;margin-bottom:8px;"></div><div class="skeleton" style="height:14px;width:60%;"></div></div></div>
+          <div class="product-card"><div class="skeleton" style="aspect-ratio:3/4;"></div><div style="padding:1rem;"><div class="skeleton" style="height:16px;margin-bottom:8px;"></div><div class="skeleton" style="height:14px;width:60%;"></div></div></div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state" style="display:none;">
+          <div class="empty-state-icon">
+            <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24" opacity="0.3"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </div>
+          <h3>No products found</h3>
+          <p>Try adjusting your filters or search terms.</p>
+          <button class="btn btn-outline" onclick="clearAllFilters()">Clear Filters</button>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- Product Detail Modal -->
+<div class="product-modal-overlay" id="product-modal" style="display:none;" onclick="if(event.target===this)closeModal();">
+  <div class="product-modal">
+    <button class="product-modal-close" onclick="closeModal()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="product-modal-body" id="product-modal-body">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2024 TimePiece. All rights reserved.</span>
+      <div class="footer-payment-icons">
+        <span class="payment-icon">Razorpay</span>
+        <span class="payment-icon">UPI</span>
+        <span class="payment-icon">Visa</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="/js/app.js"></script>
+<script>
+  // ── State ────────────────────────────────────────────────────
+  let filters = {
+    category: 'all',
+    sort: 'featured',
+    maxPrice: 30000,
+    minRating: 0,
+    saleOnly: false,
+    search: '',
+    page: 1
+  };
+  const PAGE_SIZE = 12;
+  let allCategories = [];
+  let searchTimer;
+  let currentView = 'grid';
+
+  // ── Init ─────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    renderNavbar('products');
+    parseURLParams();
+    loadCategories();
+    loadProducts();
+  });
+
+  function parseURLParams() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('cat'))  { filters.category = params.get('cat'); }
+    if (params.get('sort')) { filters.sort = params.get('sort'); }
+    if (params.get('sale') === 'true') filters.saleOnly = true;
+    if (params.get('q'))    { filters.search = params.get('q'); document.getElementById('search-input').value = filters.search; }
+
+    // Update page title for category
+    if (filters.category !== 'all') {
+      const catMap = { sarees:'Sarees', kurtis:'Kurtis', lehengas:'Lehengas', suits:'Suits', dupattas:'Dupattas' };
+      const title = catMap[filters.category] || filters.category;
+      document.getElementById('page-title').textContent = title;
+      document.getElementById('breadcrumb-current').textContent = title;
+    }
+  }
+
+  // ── Load Categories ──────────────────────────────────────────
+  async function loadCategories() {
+    const { data, error } = await _supabase
+      .from('categories')
+      .select('*')
+      .order('name');
+    if (error || !data) return;
+
+    allCategories = data;
+    const list = document.getElementById('category-filters');
+    const catItems = data.map(cat => `
+      <div class="filter-item ${filters.category === cat.slug ? 'active' : ''}"
+           data-cat="${cat.slug}"
+           onclick="setCategory('${cat.slug}', this)">
+        ${cat.name}
+        <span class="filter-count" id="count-${cat.slug}">—</span>
+      </div>`).join('');
+
+    list.innerHTML = `
+      <div class="filter-item ${filters.category === 'all' ? 'active' : ''}" data-cat="all" onclick="setCategory('all', this)">
+        All Products <span class="filter-count" id="count-all">—</span>
+      </div>` + catItems;
+
+    // Get counts
+    for (const cat of data) {
+      const { count } = await _supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', cat.id);
+      const el = document.getElementById(`count-${cat.slug}`);
+      if (el) el.textContent = count || 0;
+    }
+  }
+
+  // ── Load Products ────────────────────────────────────────────
+  async function loadProducts() {
+    const grid = document.getElementById('products-grid');
+    grid.innerHTML = Array(6).fill(`
+      <div class="product-card">
+        <div class="skeleton" style="aspect-ratio:3/4;"></div>
+        <div style="padding:1rem;">
+          <div class="skeleton" style="height:16px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:14px;width:60%;"></div>
+        </div>
+      </div>`).join('');
+
+    let query = _supabase
+      .from('products')
+      .select('*, categories!inner(name, slug)', { count: 'exact' });
+
+    // Filters
+    if (filters.category !== 'all') {
+      query = query.eq('categories.slug', filters.category);
+    }
+    if (filters.maxPrice < 30000) {
+      query = query.lte('price', filters.maxPrice);
+    }
+    if (filters.minRating > 0) {
+      query = query.gte('rating', filters.minRating);
+    }
+    if (filters.saleOnly) {
+      query = query.not('sale_price', 'is', null);
+    }
+    if (filters.search) {
+      query = query.ilike('name', `%${filters.search}%`);
+    }
+
+    // Sort
+    switch (filters.sort) {
+      case 'price_asc':  query = query.order('price', { ascending: true }); break;
+      case 'price_desc': query = query.order('price', { ascending: false }); break;
+      case 'rating':     query = query.order('rating', { ascending: false }); break;
+      case 'newest':     query = query.order('created_at', { ascending: false }); break;
+      default:           query = query.order('featured', { ascending: false }).order('id'); break;
+    }
+
+    // Pagination
+    const from = (filters.page - 1) * PAGE_SIZE;
+    query = query.range(from, from + PAGE_SIZE - 1);
+
+    const { data, count, error } = await query;
+
+    document.getElementById('product-count').textContent = count || 0;
+
+    if (error || !data?.length) {
+      grid.innerHTML = '';
+      document.getElementById('empty-state').style.display = 'block';
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+
+    document.getElementById('empty-state').style.display = 'none';
+    grid.className = `products-grid${currentView === 'list' ? ' list-view' : ''}`;
+    grid.innerHTML = data.map(renderProductCard).join('');
+    renderPagination(count);
+    updateFilterTags();
+  }
+
+  // ── Product Card ─────────────────────────────────────────────
+  function renderProductCard(p) {
+    const disc = discountPct(p.price, p.sale_price);
+    const displayPrice = p.sale_price || p.price;
+    return `
+      <div class="product-card fade-in">
+        <div class="product-card-image">
+          <img src="${p.image_url}" alt="${p.name}" loading="lazy" />
+          ${disc > 0 ? `<span class="product-card-badge">${disc}% OFF</span>` : ''}
+          <div class="product-card-actions">
+            <button class="product-action-btn" onclick="event.preventDefault();quickAdd(${p.id})" title="Add to Cart">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            </button>
+            <button class="product-action-btn" onclick="event.preventDefault();openProductModal(${p.id})" title="View">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="product-card-body">
+          <p class="product-card-category">${p.categories?.name || ''}</p>
+          <h3 class="product-card-name">
+            <a href="#" onclick="event.preventDefault();openProductModal(${p.id})">${p.name}</a>
+          </h3>
+          <p class="product-description">${p.description?.substring(0, 100) || ''}...</p>
+          <div class="product-card-rating">
+            <span class="stars">${starsHTML(p.rating || 4)}</span>
+            <span class="rating-count">(${p.reviews_count || 0})</span>
+          </div>
+          <div class="product-card-price">
+            <span class="price-current">${formatPrice(displayPrice)}</span>
+            ${p.sale_price ? `<span class="price-original">${formatPrice(p.price)}</span>
+            <span class="price-discount">-${disc}%</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function quickAdd(productId) {
+    await addToCart(productId, 1);
+  }
+
+  // ── Filters ──────────────────────────────────────────────────
+  function setCategory(slug, el) {
+    filters.category = slug;
+    filters.page = 1;
+    document.querySelectorAll('.filter-item[data-cat]').forEach(e => e.classList.remove('active'));
+    el.classList.add('active');
+    loadProducts();
+  }
+
+  function setSort(sort, el) {
+    filters.sort = sort;
+    filters.page = 1;
+    document.querySelectorAll('.sort-option').forEach(e => e.classList.remove('active'));
+    el.classList.add('active');
+    loadProducts();
+  }
+
+  function updatePriceFilter() {
+    const val = document.getElementById('price-max').value;
+    filters.maxPrice = parseInt(val);
+    filters.page = 1;
+    document.getElementById('price-display-max').textContent = formatPrice(val);
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadProducts, 500);
+  }
+
+  function setRating(min, el) {
+    filters.minRating = min;
+    filters.page = 1;
+    document.querySelectorAll('.rating-filter').forEach(e => e.classList.remove('active'));
+    el.classList.add('active');
+    loadProducts();
+  }
+
+  function toggleSaleFilter() {
+    filters.saleOnly = !filters.saleOnly;
+    filters.page = 1;
+    document.getElementById('sale-filter').classList.toggle('active', filters.saleOnly);
+    loadProducts();
+  }
+
+  function debounceSearch() {
+    filters.search = document.getElementById('search-input').value.trim();
+    filters.page = 1;
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadProducts, 500);
+  }
+
+  function clearAllFilters() {
+    filters = { category: 'all', sort: 'featured', maxPrice: 30000, minRating: 0, saleOnly: false, search: '', page: 1 };
+    document.getElementById('search-input').value = '';
+    document.getElementById('price-max').value = 30000;
+    document.getElementById('price-display-max').textContent = '₹30,000';
+    document.querySelectorAll('.filter-item[data-cat]').forEach(e => e.classList.remove('active'));
+    document.querySelector('.filter-item[data-cat="all"]').classList.add('active');
+    document.querySelectorAll('.sort-option').forEach(e => e.classList.remove('active'));
+    document.querySelector('.sort-option[data-sort="featured"]').classList.add('active');
+    document.querySelectorAll('.rating-filter').forEach(e => e.classList.remove('active'));
+    document.querySelector('.rating-filter[data-min-rating="0"]').classList.add('active');
+    document.getElementById('sale-filter').classList.remove('active');
+    document.getElementById('filter-tags').innerHTML = '';
+    loadProducts();
+  }
+
+  function updateFilterTags() {
+    const tags = [];
+    if (filters.category !== 'all') tags.push({ label: `Category: ${filters.category}`, action: "setCategory('all', document.querySelector('[data-cat=\"all\"]'))" });
+    if (filters.maxPrice < 30000) tags.push({ label: `Max: ${formatPrice(filters.maxPrice)}`, action: "document.getElementById('price-max').value=30000;filters.maxPrice=30000;loadProducts();" });
+    if (filters.saleOnly) tags.push({ label: 'On Sale', action: "toggleSaleFilter()" });
+    if (filters.search) tags.push({ label: `"${filters.search}"`, action: "filters.search='';document.getElementById('search-input').value='';loadProducts();" });
+    document.getElementById('filter-tags').innerHTML = tags.map(t =>
+      `<div class="filter-tag">${t.label} <span class="filter-tag-remove" onclick="${t.action}">✕</span></div>`
+    ).join('');
+  }
+
+  // ── View Toggle ──────────────────────────────────────────────
+  function setView(view) {
+    currentView = view;
+    document.getElementById('view-grid').classList.toggle('active', view === 'grid');
+    document.getElementById('view-list').classList.toggle('active', view === 'list');
+    const grid = document.getElementById('products-grid');
+    grid.className = `products-grid${view === 'list' ? ' list-view' : ''}`;
+  }
+
+  // ── Pagination ───────────────────────────────────────────────
+  function renderPagination(total) {
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const container = document.getElementById('pagination');
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+    let html = '';
+    if (filters.page > 1) html += `<button class="page-btn" onclick="goPage(${filters.page - 1})">‹</button>`;
+    for (let p = 1; p <= totalPages; p++) {
+      if (p === filters.page) html += `<button class="page-btn active">${p}</button>`;
+      else if (p === 1 || p === totalPages || Math.abs(p - filters.page) <= 1) {
+        html += `<button class="page-btn" onclick="goPage(${p})">${p}</button>`;
+      } else if (Math.abs(p - filters.page) === 2) {
+        html += `<span style="color:var(--clr-text-muted);align-self:center;">…</span>`;
+      }
+    }
+    if (filters.page < totalPages) html += `<button class="page-btn" onclick="goPage(${filters.page + 1})">›</button>`;
+    container.innerHTML = html;
+  }
+
+  function goPage(p) {
+    filters.page = p;
+    loadProducts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Mobile Filter ────────────────────────────────────────────
+  function toggleMobileFilter() {
+    document.getElementById('products-sidebar').classList.toggle('mobile-open');
+  }
+
+  // ── Product Modal ────────────────────────────────────────────
+  async function openProductModal(productId) {
+    const modal = document.getElementById('product-modal');
+    const body = document.getElementById('product-modal-body');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:300px;"><div class="loader-ring"></div></div>`;
+
+    const { data, error } = await _supabase
+      .from('products')
+      .select('*, categories(name, slug)')
+      .eq('id', productId)
+      .single();
+
+    if (error || !data) {
+      body.innerHTML = '<p style="padding:2rem;color:var(--clr-text-muted);">Failed to load product.</p>';
+      return;
+    }
+
+    const p = data;
+    const disc = discountPct(p.price, p.sale_price);
+    const displayPrice = p.sale_price || p.price;
+    const colorsHTML = (p.colors || []).map((c, i) =>
+      `<button class="modal-color-btn ${i===0?'active':''}" onclick="this.parentElement.querySelectorAll('.modal-color-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">${c}</button>`
+    ).join('');
+
+    body.innerHTML = `
+      <div class="modal-product-image">
+        <img src="${p.image_url}" alt="${p.name}" />
+        ${disc > 0 ? `<span class="product-card-badge" style="position:absolute;top:16px;left:16px;">${disc}% OFF</span>` : ''}
+      </div>
+      <div class="modal-product-info">
+        <p class="modal-category">${p.categories?.name || ''}</p>
+        <h2 class="modal-title">${p.name}</h2>
+        <div class="modal-rating">
+          <span class="stars">${starsHTML(p.rating || 4)}</span>
+          <span class="rating-count">(${p.reviews_count || 0} reviews)</span>
+        </div>
+        <div class="modal-price">
+          <span class="price-current" style="font-size:1.5rem;">${formatPrice(displayPrice)}</span>
+          ${p.sale_price ? `<span class="price-original">${formatPrice(p.price)}</span><span class="price-discount">-${disc}%</span>` : ''}
+        </div>
+        <p class="modal-description">${p.description || ''}</p>
+        ${colorsHTML ? `<div class="modal-section"><label class="modal-label">Color</label><div class="modal-colors">${colorsHTML}</div></div>` : ''}
+        <div class="modal-section" style="display:flex;align-items:center;gap:12px;margin-top:auto;">
+          <div class="modal-qty">
+            <button onclick="modalQty(-1)">−</button>
+            <span id="modal-qty-val">1</span>
+            <button onclick="modalQty(1)">+</button>
+          </div>
+          <button class="btn btn-primary btn-lg" style="flex:1;" onclick="addToCart(${p.id}, parseInt(document.getElementById('modal-qty-val').textContent));showToast('Added to cart','success');">
+            Add to Cart
+          </button>
+        </div>
+        <div class="modal-meta">
+          <span>Stock: ${p.stock > 0 ? p.stock + ' available' : 'Out of stock'}</span>
+          <span>Category: ${p.categories?.name || '—'}</span>
+        </div>
+      </div>
+    `;
+
+    requestAnimationFrame(() => modal.classList.add('active'));
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('product-modal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    setTimeout(() => { modal.style.display = 'none'; }, 250);
+  }
+
+  function modalQty(delta) {
+    const el = document.getElementById('modal-qty-val');
+    const v = Math.max(1, parseInt(el.textContent) + delta);
+    el.textContent = v;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+</script>
+</body>
+</html>
